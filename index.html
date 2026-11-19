@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2e7d32">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Gharial</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐊%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --g:#2e7d32; --g-soft:#e8f5e9; --bg:#f6f7f6; --fg:#1b1d1b; --card:#fff;
+  --mut:#6b716b; --line:#e2e5e2; --me:#d7f0d4; --other:#fff;
+  --doubt:#fff1d6; --solved:#d8f1dc; --err:#c62828;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --g:#66bb6a; --g-soft:#1d2a1e; --bg:#101310; --fg:#eef1ee; --card:#181c18;
+    --mut:#9aa39a; --line:#2a312a; --me:#24402a; --other:#1d231d;
+    --doubt:#4a3a17; --solved:#1f3d26; --err:#ef9a9a;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--fg);font-size:16px}
+#app{height:100dvh;max-width:640px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);position:relative}
+header{display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--g);color:#fff;font-size:18px}
+@media (prefers-color-scheme:dark){header{background:#1f3a22;color:#eef1ee}}
+header b{flex:1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .streak{font-size:14px;font-weight:600;background:rgba(255,255,255,.18);padding:4px 10px;border-radius:99px}
+button{font:inherit;color:inherit;cursor:pointer}
+.icon{background:none;border:0;color:inherit;font-size:22px;padding:4px 8px}
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;padding:12px;font-weight:600;color:var(--mut);border-bottom:3px solid transparent}
+.tabs button.on{color:var(--g);border-bottom-color:var(--g)}
+main{flex:1;overflow-y:auto;padding-bottom:90px}
+.item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--line);cursor:pointer}
+.item .av{width:42px;height:42px;border-radius:50%;background:var(--g-soft);color:var(--g);display:grid;place-items:center;font-weight:700;font-size:18px;flex:none}
+.item .t{flex:1;min-width:0}
+.item .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .t small{color:var(--mut)}
+.item .r{color:var(--g);font-weight:600;font-size:14px}
+.lb .item{cursor:default}
+.lb .rank{width:34px;text-align:center;font-size:22px;flex:none}
+.lb .me{background:var(--g-soft)}
+.empty{text-align:center;color:var(--mut);padding:40px 20px}
+.fab{position:absolute;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));background:var(--g);color:#fff;border:0;border-radius:99px;padding:14px 20px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+@media (prefers-color-scheme:dark){.fab{color:#0c1a0d}}
+.auth{margin:auto;width:100%;padding:24px;text-align:center}
+.auth .logo{font-size:64px}
+.auth h1{margin:4px 0}
+.mut{color:var(--mut)}
+input,select{width:100%;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px}
+input[hidden]{display:none}
+.btn{width:100%;margin-top:16px;background:var(--g);color:#fff;border:0;border-radius:10px;padding:13px;font-weight:600}
+@media (prefers-color-scheme:dark){.btn{color:#0c1a0d}}
+.btn:disabled{opacity:.6}
+.btn.ghost{background:none;color:var(--mut);border:1px solid var(--line)}
+.link{background:none;border:0;color:var(--g);margin-top:14px;padding:8px}
+.err{color:var(--err);min-height:20px;margin-top:10px;font-size:14px}
+#msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:5px}
+.m{max-width:82%;padding:8px 11px;border-radius:14px;background:var(--other);border:1px solid var(--line);align-self:flex-start;word-wrap:break-word;overflow-wrap:anywhere}
+.m.mine{align-self:flex-end;background:var(--me);border-color:transparent}
+.m.doubt{background:var(--doubt)}
+.m.solved{background:var(--solved)}
+.m .n{font-size:12px;font-weight:700;color:var(--g)}
+.m .tag{font-size:12px;font-weight:700}
+.m .x{font-size:11px;color:var(--mut);display:flex;gap:12px;align-items:center;margin-top:2px}
+.m .x button{background:none;border:0;padding:0;color:var(--g);font-weight:700;font-size:12px;text-decoration:underline}
+.emo{display:flex;gap:2px;padding:2px 8px;background:var(--card);border-top:1px solid var(--line);overflow-x:auto}
+.emo button{background:none;border:0;font-size:24px;padding:4px 8px}
+#mf{display:flex;gap:8px;align-items:center;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:var(--card)}
+#mf input{margin:0;flex:1}
+.chip{background:none;border:1px solid var(--line);border-radius:99px;padding:8px 12px;font-size:14px}
+.chip.on{background:var(--doubt);border-color:#e0a63a;font-weight:600}
+.send{background:var(--g);color:#fff;border:0;border-radius:50%;width:44px;height:44px;font-size:18px;flex:none}
+@media (prefers-color-scheme:dark){.send{color:#0c1a0d}}
+dialog{border:0;border-radius:16px;padding:20px;width:min(92vw,380px);background:var(--card);color:var(--fg)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog h3{margin:0 0 4px}
+dialog .row{display:flex;gap:10px}
+</style>
+</head>
+<body>
+<div id="app"><div class="auth"><div class="logo">🐊</div><p class="mut">Load ho raha hai...</p></div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, onSnapshot, query, orderBy, limit, serverTimestamp, arrayUnion, runTransaction }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ===== FIREBASE CONFIG =====
+   Agar login pe "API key not valid" ya "requests blocked" aaye, toh Firebase mein
+   Web app (</>) register karke uski config yahan replace kar do. */
+const firebaseConfig = {
+  apiKey: "AIzaSyBwAjIihImkKPDubYHykU4v_c9uezWfvqM",
+  authDomain: "ghariyal-ae5b5.firebaseapp.com",
+  projectId: "ghariyal-ae5b5",
+  messagingSenderId: "420281028393",
+  appId: "1:420281028393:android:ed5c7ea71813392f333138"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const app = $("#app");
+const CATS = ["JEE", "NEET", "UPSC", "Class 12", "Class 10", "College", "Other"];
+const ERR = {
+  "auth/invalid-credential": "Email ya password galat hai",
+  "auth/invalid-email": "Email sahi likho",
+  "auth/email-already-in-use": "Ye email pehle se registered hai, Login karo",
+  "auth/weak-password": "Password kam se kam 6 akshar ka rakho",
+  "auth/missing-password": "Password daalo",
+  "auth/network-request-failed": "Internet check karo",
+  "auth/too-many-requests": "Bahut try ho gaye, thodi der baad try karo",
+  "auth/operation-not-allowed": "Firebase mein Email/Password login enable nahi hai"
+};
+
+let user = null;
+let subs = [];
+const clearSubs = () => { subs.forEach(f => { try { f(); } catch (e) {} }); subs = []; };
+
+onAuthStateChanged(auth, u => {
+  user = u;
+  clearSubs();
+  if (u) { touchStreak(u); showHome(); } else showAuth();
+});
+
+/* ---------- streak ---------- */
+const dstr = d => d.toLocaleDateString("sv-SE");
+async function touchStreak(u) {
+  const ref = doc(db, "users", u.uid);
+  const today = dstr(new Date());
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const yest = dstr(y);
+  try {
+    await runTransaction(db, async tx => {
+      const s = await tx.get(ref);
+      const d = s.exists() ? s.data() : null;
+      let streak = 1;
+      if (d) {
+        if (d.lastActive === today) return;
+        streak = d.lastActive === yest ? (d.streak || 0) + 1 : 1;
+      }
+      tx.set(ref, { name: u.displayName || (d && d.name) || "Student", streak, lastActive: today }, { merge: true });
+    });
+  } catch (e) { console.warn("streak", e); }
+}
+
+/* ---------- auth screen ---------- */
+function showAuth() {
+  clearSubs();
+  let signup = false;
+  app.innerHTML = `
+  <div class="auth">
+    <div class="logo">🐊</div>
+    <h1>Gharial</h1>
+    <p class="mut">Padhai bhi, masti bhi</p>
+    <form id="f">
+      <input id="name" placeholder="Tumhara naam" autocomplete="name" hidden>
+      <input id="email" type="email" placeholder="Email" autocomplete="email" required>
+      <input id="pass" type="password" placeholder="Password (min 6)" autocomplete="current-password" required>
+      <div id="err" class="err"></div>
+      <button class="btn" id="go">Login</button>
+    </form>
+    <button class="link" id="sw">Naya hai? Account banao</button>
+  </div>`;
+  const f = $("#f"), err = $("#err"), go = $("#go");
+  $("#sw").onclick = () => {
+    signup = !signup;
+    $("#name").hidden = !signup;
+    go.textContent = signup ? "Account banao" : "Login";
+    $("#sw").textContent = signup ? "Pehle se account hai? Login karo" : "Naya hai? Account banao";
+    err.textContent = "";
+  };
+  f.onsubmit = async e => {
+    e.preventDefault();
+    err.textContent = "";
+    go.disabled = true;
+    try {
+      const em = $("#email").value.trim(), pw = $("#pass").value;
+      if (signup) {
+        const nm = $("#name").value.trim() || "Student";
+        const c = await createUserWithEmailAndPassword(auth, em, pw);
+        await updateProfile(c.user, { displayName: nm });
+        await setDoc(doc(db, "users", c.user.uid), { name: nm }, { merge: true });
+      } else {
+        await signInWithEmailAndPassword(auth, em, pw);
+      }
+    } catch (x) {
+      err.textContent = ERR[x.code] || x.message;
+    }
+    go.disabled = false;
+  };
+}
+
+/* ---------- home ---------- */
+function showHome() {
+  clearSubs();
+  let tab = "groups", groups = [], lb = [], gErr = "", lErr = "";
+  app.innerHTML = `
+  <header><b>🐊 Gharial</b><span class="streak" id="streak">🔥 0 din</span><button class="icon" id="out" title="Logout">⎋</button></header>
+  <div class="tabs"><button class="on" data-t="groups">Groups</button><button data-t="lb">Leaderboard</button></div>
+  <main id="main"></main>
+  <button class="fab" id="newg">+ Naya group</button>
+  <dialog id="dlg">
+    <form method="dialog">
+      <h3>Naya group</h3>
+      <input id="gname" placeholder="Group ka naam" maxlength="40" required>
+      <select id="gcat">${CATS.map(c => `<option>${esc(c)}</option>`).join("")}</select>
+      <div class="row"><button value="cancel" class="btn ghost" formnovalidate>Cancel</button><button value="ok" class="btn">Banao</button></div>
+    </form>
+  </dialog>`;
+  const main = $("#main"), dlg = $("#dlg");
+
+  function render() {
+    if (tab === "groups") {
+      if (gErr) { main.innerHTML = `<p class="empty">Error: ${esc(gErr)}</p>`; return; }
+      if (!groups.length) { main.innerHTML = `<p class="empty">Abhi koi group nahi.<br>Pehla group tum banao! 👇</p>`; return; }
+      main.innerHTML = groups.map(g => {
+        const n = (g.members || []).length, joined = (g.members || []).includes(user.uid);
+        return `<div class="item" data-gid="${esc(g.id)}">
+          <div class="av">${esc((g.name || "?").trim().charAt(0).toUpperCase())}</div>
+          <div class="t"><b>${esc(g.name)}</b><small>${esc(g.category)} • ${n} members</small></div>
+          <div class="r">${joined ? "✓" : "Join"}</div></div>`;
+      }).join("");
+    } else {
+      if (lErr) { main.innerHTML = `<p class="empty">Error: ${esc(lErr)}</p>`; return; }
+      if (!lb.length) { main.innerHTML = `<p class="empty">Abhi koi nahi.</p>`; return; }
+      const medal = i => ["🥇", "🥈", "🥉"][i] || String(i + 1);
+      main.innerHTML = `<div class="lb">` + lb.map((u, i) => `
+        <div class="item ${u.id === user.uid ? "me" : ""}">
+          <div class="rank">${medal(i)}</div>
+          <div class="t"><b>${esc(u.name || "Student")}</b></div>
+          <div class="r">🔥 ${u.streak || 0}</div></div>`).join("") + `</div>`;
+    }
+  }
+
+  document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+    tab = b.dataset.t;
+    document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
+    render();
+  });
+
+  main.onclick = async e => {
+    const el = e.target.closest("[data-gid]");
+    if (!el) return;
+    const g = groups.find(x => x.id === el.dataset.gid);
+    if (!g) return;
+    try {
+      if (!(g.members || []).includes(user.uid)) {
+        await updateDoc(doc(db, "groups", g.id), { members: arrayUnion(user.uid) });
+      }
+    } catch (x) { alert("Join nahi ho paya: " + x.message); return; }
+    showChat(g.id, g.name);
+  };
+
+  $("#out").onclick = () => signOut(auth);
+  $("#newg").onclick = () => { dlg.returnValue = ""; $("#gname").value = ""; dlg.showModal(); };
+  dlg.addEventListener("close", async () => {
+    if (dlg.returnValue !== "ok") return;
+    const n = $("#gname").value.trim();
+    if (!n) return;
+    try {
+      await addDoc(collection(db, "groups"), {
+        name: n, category: $("#gcat").value, createdBy: user.uid,
+        members: [user.uid], createdAt: serverTimestamp()
+      });
+    } catch (x) { alert("Group nahi bana: " + x.message); }
+  });
+
+  subs.push(onSnapshot(doc(db, "users", user.uid), s => {
+    const d = s.data();
+    $("#streak").textContent = `🔥 ${(d && d.streak) || 0} din`;
+  }, () => {}));
+  subs.push(onSnapshot(query(collection(db, "groups"), orderBy("createdAt", "desc")), s => {
+    gErr = ""; groups = s.docs.map(d => ({ id: d.id, ...d.data() })); render();
+  }, e => { gErr = e.message; render(); }));
+  subs.push(onSnapshot(query(collection(db, "users"), orderBy("streak", "desc"), limit(20)), s => {
+    lErr = ""; lb = s.docs.map(d => ({ id: d.id, ...d.data() })); render();
+  }, e => { lErr = e.message; render(); }));
+  render();
+}
+
+/* ---------- chat ---------- */
+function showChat(gid, gname) {
+  clearSubs();
+  let doubt = false, first = true;
+  app.innerHTML = `
+  <header><button class="icon" id="back">←</button><b>${esc(gname)}</b></header>
+  <div id="msgs"></div>
+  <div class="emo">${["😂", "🔥", "👍", "🤯", "😭", "💪", "🎉", "📚"].map(e => `<button data-e="${e}">${e}</button>`).join("")}</div>
+  <form id="mf">
+    <button type="button" class="chip" id="dchip">❓ Doubt</button>
+    <input id="mi" placeholder="Message..." autocomplete="off">
+    <button class="send">➤</button>
+  </form>`;
+  const col = collection(db, "groups", gid, "messages");
+  const box = $("#msgs"), mi = $("#mi"), dchip = $("#dchip");
+
+  const send = async (text, isDoubt = false) => {
+    text = text.trim();
+    if (!text) return;
+    try {
+      await addDoc(col, {
+        text, uid: user.uid, name: user.displayName || "Student",
+        isDoubt, solved: false, createdAt: serverTimestamp()
+      });
+    } catch (x) { alert("Message nahi gaya: " + x.message); }
+  };
+
+  $("#back").onclick = showHome;
+  dchip.onclick = () => {
+    doubt = !doubt;
+    dchip.classList.toggle("on", doubt);
+    mi.placeholder = doubt ? "Apna doubt likho..." : "Message...";
+  };
+  $("#mf").onsubmit = e => {
+    e.preventDefault();
+    const t = mi.value, d = doubt;
+    mi.value = "";
+    doubt = false; dchip.classList.remove("on"); mi.placeholder = "Message...";
+    send(t, d);
+  };
+  document.querySelectorAll(".emo button").forEach(b => b.onclick = () => send(b.dataset.e));
+  box.onclick = async e => {
+    const b = e.target.closest("[data-solve]");
+    if (!b) return;
+    try { await updateDoc(doc(db, "groups", gid, "messages", b.dataset.solve), { solved: true }); }
+    catch (x) { alert(x.message); }
+  };
+
+  const bubble = m => {
+    const mine = m.uid === user.uid;
+    const t = m.createdAt && m.createdAt.toDate ? m.createdAt.toDate().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "";
+    const cls = ["m", mine ? "mine" : "", m.isDoubt ? (m.solved ? "doubt solved" : "doubt") : ""].join(" ");
+    return `<div class="${cls}">
+      ${mine ? "" : `<div class="n">${esc(m.name)}</div>`}
+      ${m.isDoubt ? `<div class="tag">${m.solved ? "✅ Solved" : "❓ Doubt"}</div>` : ""}
+      <div>${esc(m.text)}</div>
+      <div class="x"><span>${esc(t)}</span>${m.isDoubt && !m.solved ? `<button data-solve="${esc(m.id)}">Solved mark karo</button>` : ""}</div>
+    </div>`;
+  };
+
+  subs.push(onSnapshot(query(col, orderBy("createdAt", "desc"), limit(100)), s => {
+    const items = s.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+    const near = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
+    box.innerHTML = items.length ? items.map(bubble).join("") : `<p class="empty">Pehla message bhejo 👋</p>`;
+    if (near || first) box.scrollTop = box.scrollHeight;
+    first = false;
+  }, e => { box.innerHTML = `<p class="empty">Error: ${esc(e.message)}</p>`; }));
+}
+</script>
+</body>
+</html>
